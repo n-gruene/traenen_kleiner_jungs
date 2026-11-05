@@ -1,0 +1,48 @@
+<!--- eine taetigkeit besteht aus textfeld + stundenangabe -->
+<!-- wenn ein feld leer gerendert wird, soll eine fehlermeldung hinzgefuegt werden, daher is invalid (bs) wenn leer gerendert + hinweistext wg selbstbeschreibung -->
+{% macro taetigkeit(text, std, id="") %}
+{% set fehler = " is-invalid" if not (text and std) else "" %}
+<div class="input-group input-group-sm mb-2">
+  <textarea style="field-sizing: content" class="form-control bg-secondary-subtle{{ fehler }}" placeholder="Tätigkeit beschreiben..." aria-label="Textfeld Tätigkeit"{% if fehler %} aria-invalid="true" {% endif %}>{{ text }}</textarea>
+  <input class="form-control w-25 flex-grow-0 text-center bg-secondary text-white fw-bold{{ fehler }}" value="{{ std }}" aria-label="Stunden"{% if fehler %} aria-invalid="true" {% endif %}>
+  <button class="btn btn-outline-danger" type="button" aria-label="Tätigkeit löschen"><i class="bi bi-trash" aria-hidden="true"></i></button>
+</div>
+{% if fehler %}<div class="text-danger small mb-2" id="{{ id }}-fehler">Bitte Tätigkeit und Stunden angeben.</div>{% endif %}
+{% endmacro %}
+
+<!-- das textfeld einer NEUEN taetigkeit soll ein dropdownfeld haben, um vorlagen auswaehlen zu koennen -->
+{% macro neue_taetigkeit() %}
+<div class="input-group input-group-sm mb-3 position-relative">
+  <input class="form-control bg-secondary-subtle" placeholder="+ Tätigkeit hinzufügen… (max. 10 insg.)" aria-label="Neue Tätigkeit hinzufügen">
+  <button type="button" class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-bs-reference="parent" aria-label="Vorlagen anzeigen" aria-expanded="false"></button>
+  <ul class="dropdown-menu w-100">
+    <li class="d-flex">
+      <a class="dropdown-item flex-grow-1" href="#">Urlaub (8h)</a>
+      <button type="button" class="dropdown-item w-auto" aria-label="Vorlage Urlaub löschen"><i class="bi bi-trash" aria-hidden="true"></i></button>
+    </li>
+    <li class="d-flex">
+      <a class="dropdown-item flex-grow-1" href="#">Krankheit (8h)</a>
+      <button type="button" class="dropdown-item w-auto" aria-label="Vorlage Krankheit löschen"><i class="bi bi-trash" aria-hidden="true"></i></button>
+    </li>
+    <li class="d-flex">
+      <input class="form-control form-control-sm border-0 shadow-none bg-transparent rounded-0 px-3" placeholder="+ Vorlage hinzufügen… (Name, h)" aria-label="Neue Vorlage hinzufügen (Name, Stundenanzahl)">
+      <button type="button" class="dropdown-item w-auto" aria-label="Neue Vorlage bestätigen"><i class="bi bi-check" aria-hidden="true"></i></button>
+    </li>
+  </ul>
+</div>
+{% endmacro %}
+
+<!-- lernfelder: 12 insgesamt, jeweils 6 in einer reihe ausser bei detailansicht (dann gilt "breit")-->
+{% macro lernfelder(id, breit=false) %}
+<p class="text-center small fw-semibold mb-1 mt-auto" id="{{ id }}-titel">Lernfelder</p>
+<div class="mx-auto {{ 'w-50' if breit else 'w-75' }}">
+  <div class="row g-1{{ '' if breit else ' row-cols-6' }}">
+    {% for lernfeld_index in range(1, 13) %}
+    <div class="col">
+      <input type="checkbox" class="btn-check" id="{{ id }}-{{ lernfeld_index }}" aria-label="Lernfeld {{ lernfeld_index }}"{{ " checked" if lernfeld_index in (2, 10, 11) }}>
+      <label class="btn btn-outline-secondary btn-sm w-100" for="{{ id }}-{{ lernfeld_index }}">{{ lernfeld_index }}</label>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endmacro %}

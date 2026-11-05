@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% from "_macros.html" import taetigkeit, neue_taetigkeit, lernfelder %}
+{% block content %}
+<h1 class="h5">
+  KW 43
+  <small class="text-muted d-none d-sm-inline">[19.10.2026 bis 25.10.2026]</small>
+  <i class="bi bi-exclamation-triangle text-warning" role="status" aria-label="Warnung: Dieser Wochenbericht wurde von einem Ausbilder zurückgewiesen."></i>
+</h1>
+
+<!-- mobile only umsxhalt dropdown wochentage -->
+<div class="d-flex gap-2 mb-3 d-md-none">
+  <div class="dropdown flex-grow-1">
+    <button type="button" class="btn btn-secondary dropdown-toggle w-100 text-start" data-bs-toggle="dropdown" aria-expanded="false">{{ tage[0].name }}</button>
+    <ul class="dropdown-menu w-100">
+      {% for tag in tage %}
+      <li><a class="dropdown-item" href="#">{{ tag.name }}</a></li>
+      {% endfor %}
+    </ul>
+  </div>
+  <span class="badge bg-secondary-subtle text-body fs-6 d-flex align-items-center px-3"><span class="visually-hidden">Gesamtstunden: </span>{{ tage[0].stunden }}</span>
+</div>
+
+<!-- wochenansicht mit allen tagen in kacheln -->
+<div class="collapse show flex-grow-1 overflow-hidden" id="woche">
+  <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 gx-3 gy-0 flex-column flex-md-row h-100 overflow-y-auto">
+    {% for t in tage %}{% set tag = loop.index %}
+    <div class="col h-50 pb-3 flex-grow-1 flex-md-grow-0{{ '' if loop.first else ' d-none d-md-block' }}">
+      <div class="card shadow-sm h-100">
+        <div class="card-header d-none d-md-flex justify-content-between">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="collapse" data-bs-target="#woche,#tag{{ tag }},#aktionen,#minimieren{{ tag }}" aria-expanded="false">{{ t.name }}</button>
+          <span class="badge bg-secondary-subtle text-body d-flex align-items-center"><span class="visually-hidden">Gesamtstunden: </span>{{ t.stunden }}</span>
+        </div>
+        <div class="card-body d-flex flex-column overflow-y-auto position-relative">
+          {% if t.hinweis %}
+          <div class="alert alert-light border small d-md-none">
+            <i class="bi bi-exclamation-triangle"></i> {{ t.hinweis }}
+          </div>
+          {% endif %}
+          <!-- hier sind die bereits vorhandenen taetigkeiten inkl. stundenangabe -->
+          {% for text, std in t.taetigkeiten %}{{ taetigkeit(text, std, id="wochenansichtskachel_" ~ tag ~ "-" ~ loop.index) }}{% endfor %}
+          <!-- input feld fuer neue taetigkeit mit dropdown fuer vorlagen -->
+          {{ neue_taetigkeit() }}
+          <!-- alle lernfelder zum anklicken -->
+          {{ lernfelder("wochenansichtskachel_" ~ tag) }}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- tagesansichten (aka detailansichten bzw. tage in gross)-->
+{% for t in tage %}{% set tag = loop.index %}
+<div class="collapse flex-grow-1 overflow-hidden" id="tag{{ tag }}">
+  <div class="card shadow-sm h-100">
+    <div class="card-header bg-secondary text-white d-flex justify-content-between">
+      <strong id="tagtitel{{ tag }}">{{ t.name }} [{{ t.datum }}]</strong>
+      <span class="badge bg-secondary-subtle text-body align-items-center d-flex"><span class="visually-hidden">Gesamtstunden: </span>{{ t.stunden }}</span>
+    </div>
+    <div class="card-body d-flex flex-column overflow-y-auto position-relative">
+      {% if t.hinweis %}
+      <div class="alert alert-light border small">
+        <i class="bi bi-exclamation-triangle"></i> {{ t.hinweis }}
+      </div>
+      {% endif %}
+      <!-- siehe wochenansicht fuer erklaerungen -->
+      {% for text, std in t.taetigkeiten %}{{ taetigkeit(text, std, "detailansicht_" ~ tag ~ "-" ~ loop.index) }}{% endfor %}
+      {{ neue_taetigkeit() }}
+      {{ lernfelder("detailansicht_" ~ tag, true) }}
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+<!-- mobile aktionen (zurueck und speichern->popup) -->
+<div class="d-flex justify-content-between mt-3 d-md-none">
+  <button class="btn btn-outline-secondary"><i class="bi bi-chevron-left"></i> Zurück</button>
+  <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#popup">Speichern</button>
+</div>
+
+<!-- desktop aktionen (abbrechen, speichern, speichern u senden)-->
+<div class="collapse show" id="aktionen">
+  <div class="d-none d-md-flex justify-content-end gap-2 mt-3">
+    <button class="btn btn-outline-secondary">Abbrechen</button>
+    <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#ok1">Speichern</button>
+    <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#ok2">Speichern &amp; Senden</button>
+  </div>
+</div>
+{% for t in tage %}{% set tag = loop.index %}
+<div class="collapse" id="minimieren{{ tag }}">
+  <div class="d-none d-md-flex justify-content-end mt-3">
+    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="collapse" data-bs-target="#woche,#tag{{ tag }},#aktionen,#minimieren{{ tag }}" aria-expanded="true" aria-label="Detailansicht schließen">
+      <i class="bi bi-fullscreen-exit"></i>
+    </button>
+  </div>
+</div>
+{% endfor %}
+
+<!-- popups bzw modals (bs) -->
+<div class="modal fade" id="popup" tabindex="-1" aria-label="Speicheroptionen" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-body d-grid gap-2">
+        <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#ok1">Speichern</button>
+        <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#ok2">Speichern &amp; Senden</button>
+        <button class="btn btn-link" data-bs-dismiss="modal">Abbrechen</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% for id, text in (("ok1", "Bericht zwischengespeichert."), ("ok2", "Bericht signiert und an Ausbilder gesendet.")) %}
+<div class="modal fade" id="{{ id }}" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-body text-center">
+        <p id="{{ id }}-text">{{ text }}</p>
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Zur Übersicht</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+{% endblock %}
